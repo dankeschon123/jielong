@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班级签到</title>
+    <script type="module">
+        // Firebase 配置（用你的 Firebase 配置替换下面的内容）
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyDakV_nCFh6v9JBXCaATS9wy5N4YEwon5w",
+          authDomain: "classmates-22eff.firebaseapp.com",
+          projectId: "classmates-22eff",
+          storageBucket: "classmates-22eff.firebasestorage.app",
+          messagingSenderId: "948992802189",
+          appId: "1:948992802189:web:89e93ccd546e0179f111c4",
+          measurementId: "G-8CZS3GLEEC"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const classRef = collection(db, "classMembers"); // Firestore 集合
+
+        // 加载成员列表
+        async function loadMembers() {
+            const querySnapshot = await getDocs(classRef);
+            const container = document.getElementById("members");
+
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                const button = document.createElement("button");
+                button.textContent = data.name;
+                button.style.backgroundColor = data.checked ? "green" : "gray"; // 已完成的变绿
+                button.onclick = async () => {
+                    await setDoc(doc.ref, { checked: true }, { merge: true });
+                };
+                container.appendChild(button);
+            });
+        }
+
+        // 实时监听变化
+        onSnapshot(classRef, () => {
+            document.getElementById("members").innerHTML = "";
+            loadMembers();
+        });
+
+        window.onload = loadMembers;
+    </script>
+    <style>
+        button {
+            display: block;
+            width: 100px;
+            margin: 5px;
+            padding: 10px;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h2>班级签到</h2>
+    <div id="members"></div>
+</body>
+</html>
