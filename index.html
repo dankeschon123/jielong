@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>班级签到</title>
     <script type="module">
-        // Firebase 配置（用你的 Firebase 配置替换下面的内容）
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyDakV_nCFh6v9JBXCaATS9wy5N4YEwon5w",
@@ -22,42 +21,46 @@
         // 初始化 Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const classRef = collection(db, "classMembers"); // Firestore 集合
+        const classRef = collection(db, "classMembers");
 
-        // 加载成员列表
-        async function loadMembers() {
-            const querySnapshot = await getDocs(classRef);
+        // 监听数据库，实时更新页面
+        onSnapshot(classRef, (snapshot) => {
             const container = document.getElementById("members");
+            container.innerHTML = ""; // 清空旧内容，避免重复
 
-            querySnapshot.forEach(doc => {
-                const data = doc.data();
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
                 const button = document.createElement("button");
                 button.textContent = data.name;
-                button.style.backgroundColor = data.checked ? "green" : "gray"; // 已完成的变绿
+                button.style.backgroundColor = data.checked ? "green" : "gray"; // 签到变绿
+
                 button.onclick = async () => {
-                    await setDoc(doc.ref, { checked: true }, { merge: true });
+                    await setDoc(doc(db, "classMembers", docSnap.id), { checked: true }, { merge: true });
                 };
+
                 container.appendChild(button);
             });
-        }
-
-        // 实时监听变化
-        onSnapshot(classRef, () => {
-            document.getElementById("members").innerHTML = "";
-            loadMembers();
         });
-
-        window.onload = loadMembers;
     </script>
     <style>
         button {
             display: block;
-            width: 100px;
+            width: 120px;
             margin: 5px;
             padding: 10px;
             border: none;
             color: white;
             cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        h2 {
+            text-align: center;
+        }
+        #members {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
     </style>
 </head>
